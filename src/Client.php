@@ -75,13 +75,15 @@ class Client
      * Default authorization URL
      * string
      */
-    const OAUTH2_API_ROOT = 'https://www.linkedin.com/oauth/v2/';
+    const OAUTH2_API_ROOT = 'https://www.linkedin.com/oauth/rest/';
 
     /**
      * Default API root URL
      * string
      */
-    const API_ROOT = 'https://api.linkedin.com/v2/';
+    const API_ROOT = 'https://api.linkedin.com/rest/';
+
+    protected $apiVersion = '202411';
 
     /**
      * API Root URL
@@ -130,7 +132,7 @@ class Client
      */
     protected $apiHeaders = [
         'Content-Type' => 'application/json',
-        'x-li-format' => 'json',
+        'x-li-format' => 'json'
     ];
 
     /**
@@ -176,6 +178,29 @@ class Client
     public function setApiRoot($apiRoot)
     {
         $this->apiRoot = $apiRoot;
+        return $this;
+    }
+
+    /**
+     * Obtain API root URL
+     *
+     * @return string
+     */
+    public function getApiVersion()
+    {
+        return $this->apiVersion;
+    }
+
+    /**
+     * Specify API version
+     *
+     * @param string $apiVersion
+     *
+     * @return Client
+     */
+    public function setApiVersion($apiVersion)
+    {
+        $this->apiVersion = $apiVersion;
         return $this;
     }
 
@@ -482,6 +507,8 @@ class Client
     public function api($endpoint, array $params = [], $method = Method::GET)
     {
         $headers = $this->getApiHeaders();
+        $headers['Linkedin-Version'] = $this->getApiVersion();
+
         $options = $this->prepareOptions($params, $method);
         Method::isMethodSupported($method);
         if ($this->isUsingTokenParam()) {
@@ -489,6 +516,7 @@ class Client
         } else {
             $headers['Authorization'] = 'Bearer ' . $this->accessToken->getToken();
         }
+
         $guzzle = new GuzzleClient([
             'base_uri' => $this->getApiRoot(),
             'headers' => $headers,
